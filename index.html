@@ -1,0 +1,796 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E8654A">
+<title>Checklist Solferino · Anáhuac Cancún</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="libs/jspdf.umd.min.js" defer></script>
+<script src="libs/jspdf.plugin.autotable.min.js" defer></script>
+<style>
+:root{
+  --coral:#E8654A; --coral-d:#B93A22; --ink:#2B1F1B; --muted:#6F5E56;
+  --paper:#FFF8F3; --card:#fff; --line:#EADBD2;
+  --green:#15803D; --green-bg:#DCFCE7;
+  --blue:#1D4ED8; --blue-bg:#DBEAFE;
+  --violet:#6D28D9; --violet-bg:#EDE9FE;
+  --amber:#9A4A06; --amber-bg:#FEF0C7;
+  --teal:#0F766E;
+  --radius:16px;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.45 var(--body);padding-bottom:env(safe-area-inset-bottom)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #1D4ED8;outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Encabezado */
+.top{background:var(--coral);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 20px 22px}
+.top-in{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end}
+.school{margin:0;font-weight:700;font-size:15px}
+h1{margin:2px 0;font:800 clamp(26px,5vw,40px)/1.05 var(--display);letter-spacing:-.01em}
+.course{margin:0;font-size:16px;opacity:.95}
+.top-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.btn{min-height:46px;padding:0 18px;border-radius:12px;border:2px solid transparent;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:transform .08s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn-light{background:#fff;color:var(--coral-d)}
+.btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.8)}
+.btn-ghost:hover{background:rgba(255,255,255,.15)}
+.btn-main{background:var(--coral);color:#fff}
+.btn-main:hover{background:var(--coral-d)}
+.btn-plain{background:transparent;color:var(--muted)}
+.btn-ghost-dark{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn-ghost-dark:hover{border-color:var(--ink)}
+
+.warn{max-width:1200px;margin:12px auto 0;padding:12px 16px;border-radius:12px;background:var(--amber-bg);color:var(--amber);font-weight:600}
+.warn[hidden]{display:none}
+
+/* Resumen */
+.stats{max-width:1200px;margin:18px auto 0;padding:0 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.stat b{display:block;font:800 clamp(24px,4.5vw,36px)/1 var(--display)}
+.stat span{display:block;font-size:14px;color:var(--muted);margin:4px 0 10px}
+.bar{height:8px;border-radius:99px;background:#F1E6DF;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.stat.s-in b{color:var(--blue)} .stat.s-in i{background:var(--blue)}
+.stat.s-out b{color:var(--violet)} .stat.s-out i{background:var(--violet)}
+.stat.s-doc b{color:var(--green)} .stat.s-doc i{background:var(--green)}
+
+/* Filtros */
+.tools{max-width:1200px;margin:16px auto 0;padding:0 20px;display:flex;flex-direction:column;gap:12px}
+.search input{width:100%;min-height:50px;border-radius:14px;border:2px solid var(--line);background:#fff;padding:0 16px}
+.search input:focus{border-color:var(--coral);outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;min-height:42px;padding:0 16px;border-radius:99px;border:2px solid var(--line);background:#fff;font-weight:600;color:var(--muted)}
+.chip b{margin-left:6px;font-weight:800}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* Grupos y tarjetas */
+main{max-width:1200px;margin:8px auto 0;padding:0 20px}
+.group{margin-top:26px}
+.g-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;padding:12px 16px;border-radius:14px;color:#fff}
+.g-admin .g-head{background:var(--coral-d)}
+.g-lider .g-head{background:var(--teal)}
+.g-head h2{margin:0;font:800 24px/1.1 var(--display)}
+.g-head p{margin:0;font-weight:600;font-size:15px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:12px;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-left:8px solid #D8C8BE;border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:12px}
+.card.st-dentro{border-left-color:var(--blue)}
+.card.st-salio{border-left-color:var(--violet)}
+.who{display:flex;gap:12px;align-items:center}
+.avatar{flex:0 0 46px;height:46px;border-radius:50%;display:grid;place-items:center;font:800 17px var(--display);color:#fff}
+.g-admin .avatar{background:var(--coral-d)} .g-lider .avatar{background:var(--teal)}
+.who-t{flex:1;min-width:0}
+.who-t strong{display:block;font-size:17px;line-height:1.2}
+.who-t small{color:var(--muted);font-size:14px}
+.pill{font-size:13px;font-weight:700;padding:4px 10px;border-radius:99px;white-space:nowrap}
+.pill.p-pend{background:#F1E6DF;color:var(--muted)}
+.pill.p-dentro{background:var(--blue-bg);color:var(--blue)}
+.pill.p-salio{background:var(--violet-bg);color:var(--violet)}
+.edit{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center}
+.edit:hover{border-color:var(--ink)}
+.note{margin:0;padding:6px 10px;border-radius:10px;background:var(--amber-bg);color:var(--amber);font-size:14px;font-weight:600}
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.doc{min-height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:15px;border:2px dashed #BDAA9F;background:#fff;color:var(--muted)}
+.doc .box{width:22px;height:22px;border-radius:6px;border:2px solid #BDAA9F;display:grid;place-items:center}
+.doc svg{display:none}
+.doc.ok{background:var(--green-bg);border:2px solid var(--green);color:var(--green)}
+.doc.ok .box{background:var(--green);border-color:var(--green)}
+.doc.ok svg{display:block}
+.marks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mark{min-height:60px;border-radius:14px;border:2px solid;font-weight:800;font-size:16px;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 8px}
+.mark small{font-weight:600;font-size:12px;opacity:.85}
+.mark.m-in{border-color:var(--blue);color:var(--blue);background:#fff}
+.mark.m-out{border-color:var(--violet);color:var(--violet);background:#fff}
+.mark.done.m-in{background:var(--blue);color:#fff}
+.mark.done.m-out{background:var(--violet);color:#fff}
+.mark.armed{animation:pulse .8s ease-in-out infinite;background:var(--amber-bg);border-color:#D97706;color:var(--amber)}
+.mark:disabled{cursor:default}
+.mark:disabled:not(.done){opacity:.4}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.empty{padding:28px;text-align:center;color:var(--muted);background:#fff;border:2px dashed var(--line);border-radius:var(--radius);margin-top:12px}
+.foot{max-width:1200px;margin:32px auto 24px;padding:0 20px;color:var(--muted);font-size:14px}
+
+/* Avisos y ventanas */
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translate(-50%,30px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;max-width:90vw;z-index:50}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+dialog{border:0;border-radius:20px;padding:22px;width:min(92vw,460px);color:var(--ink);box-shadow:0 20px 60px rgba(43,31,27,.35)}
+dialog.wide{width:min(94vw,820px);max-height:90vh;overflow:auto}
+dialog::backdrop{background:rgba(43,31,27,.55)}
+dialog h2{margin:0 0 12px;font:800 26px/1.1 var(--display)}
+dialog label{display:block;font-weight:600;font-size:14px;margin-bottom:12px}
+dialog input:not([type=file]),dialog select{display:block;width:100%;min-height:46px;margin-top:4px;border-radius:10px;border:2px solid var(--line);padding:0 12px;background:#fff}
+dialog input:focus,dialog select:focus{border-color:var(--coral);outline:none}
+.dlg-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:14px}
+.hint{color:var(--muted);font-size:14px;margin:12px 0 0}
+.hint.big{font-size:15px;margin:0 0 14px}
+.form-err{color:#B91C1C;font-weight:600;margin:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+.filebtn{cursor:pointer;margin:0}
+
+/* Reporte */
+.rep h2{margin-bottom:2px}
+.rep .when{color:var(--muted);margin:0 0 14px}
+.rep-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+.rep-grid div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.rep-grid b{display:block;font:800 26px var(--display)}
+.rep h3{margin:18px 0 6px;font:800 20px var(--display);padding:6px 12px;border-radius:10px;color:#fff}
+.rep h3.g-admin{background:var(--coral-d)} .rep h3.g-lider{background:var(--teal)}
+.rep h4{margin:12px 0 4px;font-size:15px}
+.rep ul{margin:0;padding-left:20px}
+.rep li{margin:2px 0}
+.rep .none{color:var(--muted)}
+.rep details{margin-top:16px}
+.rep table{width:100%;border-collapse:collapse;font-size:14px}
+.rep th,.rep td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+
+@media (max-width:560px){
+  .stats{gap:8px;padding:0 12px}.stat{padding:10px}
+  .tools,main,.foot{padding-left:12px;padding-right:12px}
+  .top{padding-left:14px;padding-right:14px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  body{background:#fff}
+  body>*:not(#dlgReport){display:none!important}
+  #dlgReport{display:block!important;position:static;box-shadow:none;width:100%;max-height:none;padding:0}
+  .no-print{display:none!important}
+  .rep h3{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+
+/* Descargas */
+.dl{max-width:1200px;margin:32px auto 0;padding:0 20px}
+.dl-box{background:var(--card);border:2px solid var(--coral);border-radius:var(--radius);padding:18px}
+.dl-box h2{margin:0 0 4px;font:800 24px/1.1 var(--display)}
+.dl-box p{margin:0 0 12px;color:var(--muted)}
+.dl-box .ok{color:var(--green);font-weight:700}
+.dl-btns{display:flex;flex-wrap:wrap;gap:8px}
+.dl-btns .btn-big{min-height:54px;font-size:17px;flex:1 1 220px}
+@media (max-width:560px){.dl{padding:0 12px}}
+@media print{.dl{display:none!important}}
+
+/* GitHub */
+.gh{margin-top:14px;border-color:var(--ink)}
+.gh h2{font-size:21px}
+.gh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.gh label{display:block;font-weight:600;font-size:14px}
+.gh input[type=text],.gh input[type=password]{display:block;width:100%;min-height:46px;margin-top:4px;border-radius:10px;border:2px solid var(--line);padding:0 12px;background:#fff}
+.gh input:focus{border-color:var(--coral);outline:none}
+.gh .chk{display:flex;gap:8px;align-items:center;margin:4px 0 12px}
+.gh .chk input{width:20px;height:20px}
+#ghEstado{font-weight:600;margin:10px 0 0}
+@media (max-width:560px){.gh-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="titles">
+      <p class="school">Universidad Anáhuac Cancún</p>
+      <h1>Solferino · 8 de octubre de 2026</h1>
+      <p class="course">Introducción a la Empresa · Lista de entrada y salida</p>
+    </div>
+    <div class="top-actions">
+      <button class="btn btn-light" data-action="open-report">Reporte</button>
+      <button class="btn btn-ghost" data-action="open-backup">Respaldo</button>
+      <button class="btn btn-ghost" data-action="add">+ Alumno</button>
+    </div>
+  </div>
+</header>
+
+<div id="warn" class="warn" hidden></div>
+
+<section class="stats" id="stats" aria-live="polite"></section>
+
+<section class="tools">
+  <label class="search">
+    <span class="sr">Buscar alumno</span>
+    <input id="q" type="search" placeholder="Buscar por nombre o matrícula" autocomplete="off">
+  </label>
+  <div class="chips" id="chips" role="group" aria-label="Filtrar"></div>
+</section>
+
+<main id="list"></main>
+
+<section class="dl" id="descargas">
+  <div class="dl-box">
+    <h2>Terminar y descargar</h2>
+    <p id="dlResumen"></p>
+    <div class="dl-btns">
+      <button class="btn btn-main btn-big" data-action="pdf">Descargar PDF</button>
+      <button class="btn btn-ghost-dark btn-big" data-action="csv">Descargar CSV (Excel)</button>
+      <button class="btn btn-ghost-dark btn-big" data-action="export">Descargar respaldo (.json)</button>
+    </div>
+    <p class="hint">Descargar no borra nada: la información sigue guardada en este dispositivo y puedes volver a descargar cuantas veces quieras. El PDF incluye entradas, salidas, documentos y la bitácora.</p>
+  </div>
+  <div class="dl-box gh" id="github">
+    <h2>Guardar en GitHub</h2>
+    <p>Sube el registro al repositorio para tenerlo respaldado y compartido entre dispositivos. Cada guardado queda en el historial de GitHub, así nada se pierde.</p>
+    <div class="gh-grid">
+      <label>Repositorio (usuario/repositorio)<input type="text" id="ghRepo" placeholder="usuario/solferino-checklist" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <label>Token de GitHub<input type="password" id="ghToken" placeholder="github_pat_…" autocomplete="off"></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="ghAuto"> Guardar automáticamente cada vez que se registre algo</label>
+    <div class="dl-btns">
+      <button class="btn btn-main" data-action="gh-subir">Guardar en GitHub</button>
+      <button class="btn btn-ghost-dark" data-action="gh-traer">Traer de GitHub</button>
+      <button class="btn btn-plain" data-action="gh-olvidar">Quitar token de este dispositivo</button>
+    </div>
+    <p id="ghEstado" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<footer class="foot">Cada registro de entrada y salida queda con su hora y no se puede borrar. Los datos se guardan en este dispositivo; al terminar, usa “Terminar y descargar” (PDF, CSV y respaldo).</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dlgStudent">
+  <form id="formStudent" method="dialog">
+    <h2 id="studentTitle">Alumno</h2>
+    <label>Apellidos y nombre(s)<input name="nombre" required placeholder="Ej. Pérez López Ana María"></label>
+    <label>Matrícula<input name="id" required inputmode="numeric" pattern="[0-9]{4,12}" title="Solo números"></label>
+    <label>Licenciatura
+      <select name="grupo">
+        <option value="admin">Administración</option>
+        <option value="lider">Liderazgo</option>
+      </select>
+    </label>
+    <label>Nota (opcional)<input name="nota" placeholder="Ej. Falta firma del reglamento"></label>
+    <p class="form-err" id="studentErr" hidden></p>
+    <div class="dlg-actions">
+      <button type="button" class="btn btn-plain" data-action="close-dlg">Cancelar</button>
+      <button type="submit" class="btn btn-main">Guardar</button>
+    </div>
+    <p class="hint">Los alumnos no se eliminan, para conservar el historial.</p>
+  </form>
+</dialog>
+
+<dialog id="dlgReport" class="wide">
+  <div id="report"></div>
+  <div class="dlg-actions no-print">
+    <button class="btn btn-plain" data-action="close-dlg">Cerrar</button>
+    <button class="btn btn-ghost-dark" data-action="csv">Descargar CSV</button>
+    <button class="btn btn-ghost-dark" data-action="pdf">Descargar PDF</button>
+    <button class="btn btn-main" data-action="print">Imprimir / guardar PDF</button>
+  </div>
+</dialog>
+
+<dialog id="dlgBackup">
+  <h2>Respaldo</h2>
+  <p class="hint big">Descarga un respaldo al terminar el viaje. Si usas varios dispositivos, importa cada respaldo en uno solo: se combinan sin borrar nada.</p>
+  <div class="stack">
+    <button class="btn btn-main" data-action="export">Descargar respaldo (.json)</button>
+    <label class="btn btn-ghost-dark filebtn">Importar y combinar respaldo<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+  </div>
+  <div class="dlg-actions"><button class="btn btn-plain" data-action="close-dlg">Cerrar</button></div>
+</dialog>
+
+<script>
+// Nombres escritos como: Apellido paterno, materno y nombre(s). Así se ordenan alfabéticamente.
+// Lista inicial de alumnos (Introducción a la Empresa · Solferino, 8 de octubre de 2026).
+// Solo se usa la PRIMERA vez que se abre la página en un dispositivo.
+// Después, todo se edita desde la propia página y se guarda en el navegador.
+// grupo: "admin" = Licenciatura en Administración · "lider" = Licenciatura en Liderazgo
+// carta / reglamento: true = ya entregado, false = falta
+window.ROSTER_V = 3;
+window.ROSTER = [
+  { id: "00609121", nombre: "Alcocer Hanson Scott Allen",           grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00622937", nombre: "Amador Quiroz Sebastián David",        grupo: "admin", carta: true, reglamento: true,  nota: "Carta fechada 01/oct" },
+  { id: "00641252", nombre: "Barrera Reyes Frida Sofía",            grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00539689", nombre: "Casarrubias Martínez Mauricio Charbel",grupo: "admin", carta: true, reglamento: false, nota: "Falta firma del reglamento" },
+  { id: "00622891", nombre: "Escobar Ramos José René",              grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00618657", nombre: "Flores González Samantha", grupo: "admin", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00516331", nombre: "Fuentes Camacho Emiliano",             grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00633934", nombre: "Gascón García Marín Mario Patricio",   grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00636979", nombre: "González Ulloa Luis Diego",            grupo: "admin", carta: true, reglamento: true,  nota: "Menor de edad: con autorización de la madre" },
+  { id: "00620611", nombre: "Gorocica Burelos Juan Antonio",        grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00628113", nombre: "Neira Bone Camilo Gabriel",            grupo: "admin", carta: true, reglamento: true,  nota: "Menor de edad: con autorización del padre" },
+  { id: "00632716", nombre: "Rivera Ruiz Daniella Valentina",            grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00624250", nombre: "Ruiz Mendoza Santiago",                grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00621619", nombre: "Ruiz Pelagio Jorge",                   grupo: "admin", carta: true, reglamento: false, nota: "Falta firma del reglamento" },
+  { id: "00642114", nombre: "Santos Rojas Vasti Sarai", grupo: "admin", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00635044", nombre: "Sarabia Sánchez Maximiliano", grupo: "admin", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00637553", nombre: "Tame Caram Anuar", grupo: "admin", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00647032", nombre: "Tapia Campos Camila",                  grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00632688", nombre: "Tec Guerrero Camila Yamilet",          grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00632770", nombre: "Treviño Martínez Emiliano",            grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00645126", nombre: "Vigueras Morales Lenny Antonio",       grupo: "admin", carta: true, reglamento: true,  nota: "" },
+  { id: "00638607", nombre: "Willis Salvatierra Maya", grupo: "admin", carta: true, reglamento: true, nota: "Documentos del escaneo (ahí se leía matrícula 00638608)", antes: "00638608" },
+  { id: "00633240", nombre: "Álvarez García Sofía Ximena", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00626108", nombre: "Castillo Palma Carlos Joaquín", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00641066", nombre: "Chevez Rodríguez Héctor", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00562002", nombre: "Coba Cob Ingrid Ixchel", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00640295", nombre: "Dzul Trinidad Irán", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00647466", nombre: "Esquivel Jácome Mario Yael",           grupo: "lider", carta: true, reglamento: false, nota: "Falta firma del reglamento" },
+  { id: "00630462", nombre: "Fernández González Renata", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00645057", nombre: "García Navarrete Yardley Saint", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00642405", nombre: "González Varillas Daniel", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00642122", nombre: "Gratacós Gallegos Pau", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00636304", nombre: "Morales Fernández Ariannys Valentina", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00637323", nombre: "Ortega Colmenares Arianna Isabella", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00631258", nombre: "Pérez Ribadeneira Joaquín Estuardo", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00641200", nombre: "Rodríguez Cardoso Victoria Carolina", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00633639", nombre: "Salas Palacios Luis Ángel", grupo: "lider", carta: false, reglamento: false, nota: "Sin documentos en el PDF recibido" },
+  { id: "00634410", nombre: "Velasco Ancona Andrea Isabel",         grupo: "lider", carta: true, reglamento: true,  nota: "Carta fechada 01/oct" }
+];
+
+</script>
+<script>
+(() => {
+"use strict";
+const KEY = "solferino-checklist-v1";
+const GRUPOS = {
+  admin: { nombre: "Administración", completo: "Licenciatura en Administración", cls: "g-admin" },
+  lider: { nombre: "Liderazgo", completo: "Licenciatura en Liderazgo", cls: "g-lider" }
+};
+const FILTROS = [
+  ["todos", "Todos"], ["sin-entrada", "Sin entrada"], ["dentro", "Dentro"],
+  ["salio", "Ya salieron"], ["falta-doc", "Falta documento"]
+];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const hora = (iso) => iso ? new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) : "";
+const fechaHora = (iso) => new Date(iso).toLocaleString("es-MX", { dateStyle: "short", timeStyle: "short" });
+const iniciales = (n) => n.trim().split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
+
+let storageOk = true;
+let ui = { q: "", f: "todos", armed: null, editing: null };
+let state = cargar();
+sincronizar();
+
+function semilla() {
+  return { v: 1, students: window.ROSTER.map((s) => ({ ...s, entrada: null, salida: null })), log: [] };
+}
+function cargar() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.students)) return s; }
+  } catch (e) { storageOk = false; }
+  return semilla();
+}
+// Actualiza nombres al formato "Apellidos Nombres" y agrega alumnos faltantes, sin tocar entradas, salidas ni documentos.
+function sincronizar() {
+  if (state.rosterV === window.ROSTER_V) return;
+  window.ROSTER.forEach((r) => {
+    const s = state.students.find((x) => x.id === r.id) || (r.antes && state.students.find((x) => x.id === r.antes));
+    if (!s) { state.students.push({ id: r.id, nombre: r.nombre, grupo: r.grupo, carta: r.carta, reglamento: r.reglamento, nota: r.nota, entrada: null, salida: null }); return; }
+    if (s.id !== r.id) { state.log.forEach((l) => { if (l.id === s.id) l.id = r.id; }); s.id = r.id; s.nota = r.nota; }
+    s.nombre = r.nombre; s.grupo = r.grupo;
+  });
+  state.rosterV = window.ROSTER_V;
+}
+const orden = (a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+function guardar() {
+  try {
+    const prev = localStorage.getItem(KEY);
+    if (prev) localStorage.setItem(KEY + "-prev", prev);
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch (e) { storageOk = false; aviso(); }
+}
+function aviso() {
+  const w = $("#warn");
+  w.hidden = storageOk;
+  if (!storageOk) w.textContent = "Este navegador no permite guardar datos (¿modo privado?). Descarga el respaldo con frecuencia.";
+}
+function bitacora(s, accion) { state.log.push({ t: new Date().toISOString(), id: s.id, nombre: s.nombre, accion }); }
+const estado = (s) => (s.salida ? "salio" : s.entrada ? "dentro" : "pend");
+
+/* ---------- Render ---------- */
+function visibles() {
+  const q = ui.q.trim().toLowerCase();
+  return state.students.slice().sort(orden).filter((s) => {
+    if (q && !(s.nombre.toLowerCase().includes(q) || s.id.includes(q))) return false;
+    switch (ui.f) {
+      case "sin-entrada": return !s.entrada;
+      case "dentro": return s.entrada && !s.salida;
+      case "salio": return !!s.salida;
+      case "falta-doc": return !s.carta || !s.reglamento;
+    }
+    return true;
+  });
+}
+function contar(f) {
+  const l = state.students;
+  return f === "todos" ? l.length : f === "sin-entrada" ? l.filter((s) => !s.entrada).length
+    : f === "dentro" ? l.filter((s) => s.entrada && !s.salida).length
+    : f === "salio" ? l.filter((s) => s.salida).length
+    : l.filter((s) => !s.carta || !s.reglamento).length;
+}
+function renderStats() {
+  const l = state.students, n = l.length || 1;
+  const e = l.filter((s) => s.entrada).length, o = l.filter((s) => s.salida).length;
+  const d = l.filter((s) => s.carta && s.reglamento).length;
+  const box = (cls, num, txt) => `<div class="stat ${cls}"><b>${num}/${l.length}</b><span>${txt}</span><div class="bar"><i style="width:${(num / n) * 100}%"></i></div></div>`;
+  $("#stats").innerHTML = box("s-in", e, "Entradas") + box("s-out", o, "Salidas") + box("s-doc", d, "Documentos completos");
+}
+function renderChips() {
+  $("#chips").innerHTML = FILTROS.map(([k, t]) =>
+    `<button class="chip" data-action="filter" data-f="${k}" aria-pressed="${ui.f === k}">${t}<b>${contar(k)}</b></button>`).join("");
+}
+function btnMarca(s, tipo) {
+  const hecho = s[tipo], isIn = tipo === "entrada";
+  const armed = ui.armed && ui.armed.id === s.id && ui.armed.tipo === tipo;
+  const cls = `mark ${isIn ? "m-in" : "m-out"}${hecho ? " done" : ""}${armed ? " armed" : ""}`;
+  let txt, sub = "";
+  if (hecho) { txt = (isIn ? "Entró " : "Salió ") + hora(hecho); sub = "Registrado"; }
+  else if (armed) { txt = "¿Confirmar?"; sub = "Toca otra vez"; }
+  else { txt = isIn ? "Registrar entrada" : "Registrar salida"; }
+  const off = hecho || (!isIn && !s.entrada);
+  return `<button class="${cls}" data-action="mark" data-id="${esc(s.id)}" data-tipo="${tipo}" ${off ? "disabled" : ""}>${txt}${sub ? `<small>${sub}</small>` : ""}</button>`;
+}
+function tarjeta(s) {
+  const st = estado(s);
+  const pill = st === "salio" ? ["p-salio", "Salió"] : st === "dentro" ? ["p-dentro", "Dentro"] : ["p-pend", "Sin entrada"];
+  const doc = (k, t) => `<button class="doc${s[k] ? " ok" : ""}" data-action="doc" data-id="${esc(s.id)}" data-k="${k}" aria-pressed="${!!s[k]}"><span class="box">${CHECK}</span>${t}</button>`;
+  return `<article class="card st-${st}">
+    <div class="who">
+      <div class="avatar" aria-hidden="true">${esc(iniciales(s.nombre))}</div>
+      <div class="who-t"><strong>${esc(s.nombre)}</strong><small>Matrícula ${esc(s.id)}</small></div>
+      <span class="pill ${pill[0]}">${pill[1]}</span>
+      <button class="edit" data-action="edit" data-id="${esc(s.id)}" aria-label="Editar a ${esc(s.nombre)}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+    </div>
+    ${s.nota ? `<p class="note">${esc(s.nota)}</p>` : ""}
+    <div class="docs">${doc("carta", "Carta responsiva")}${doc("reglamento", "Reglamento")}</div>
+    <div class="marks">${btnMarca(s, "entrada")}${btnMarca(s, "salida")}</div>
+  </article>`;
+}
+function renderList() {
+  const vis = visibles();
+  const html = Object.entries(GRUPOS).map(([k, g]) => {
+    const todos = state.students.filter((s) => s.grupo === k);
+    const mios = vis.filter((s) => s.grupo === k);
+    if (!mios.length && ui.f === "todos" && !ui.q) { /* grupo vacío */ }
+    else if (!mios.length) return "";
+    const e = todos.filter((s) => s.entrada).length, o = todos.filter((s) => s.salida).length;
+    return `<section class="group ${g.cls}">
+      <div class="g-head"><h2>${g.completo}</h2><p>Entradas ${e}/${todos.length} · Salidas ${o}/${todos.length}</p></div>
+      <div class="cards">${mios.length ? mios.map(tarjeta).join("") : '<div class="empty">Aún no hay alumnos. Usa “+ Alumno”.</div>'}</div>
+    </section>`;
+  }).join("");
+  $("#list").innerHTML = html || '<div class="empty">Ningún alumno coincide con la búsqueda o el filtro.</div>';
+}
+function render() { renderStats(); renderChips(); renderList(); resumenDescargas(); }
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ---------- Acciones ---------- */
+const buscar = (id) => state.students.find((s) => s.id === id);
+
+function marcar(id, tipo) {
+  const s = buscar(id);
+  if (!s || s[tipo] || (tipo === "salida" && !s.entrada)) return;
+  if (ui.armed && ui.armed.id === id && ui.armed.tipo === tipo) {
+    clearTimeout(ui.armed.timer); ui.armed = null;
+    s[tipo] = new Date().toISOString();
+    bitacora(s, tipo === "entrada" ? "Entrada" : "Salida");
+    guardar(); render();
+    toast(`${tipo === "entrada" ? "Entrada" : "Salida"} registrada: ${s.nombre} · ${hora(s[tipo])}`); ghProgramar();
+  } else {
+    if (ui.armed) clearTimeout(ui.armed.timer);
+    ui.armed = { id, tipo, timer: setTimeout(() => { ui.armed = null; renderList(); }, 4000) };
+    renderList();
+  }
+}
+function alternarDoc(id, k) {
+  const s = buscar(id); if (!s) return;
+  s[k] = !s[k];
+  bitacora(s, `${k === "carta" ? "Carta responsiva" : "Reglamento"}: ${s[k] ? "entregado" : "pendiente"}`);
+  guardar(); render(); ghProgramar();
+}
+function abrirAlumno(id) {
+  const f = $("#formStudent"), s = id ? buscar(id) : null;
+  ui.editing = id || null;
+  $("#studentTitle").textContent = s ? "Editar alumno" : "Agregar alumno";
+  f.nombre.value = s ? s.nombre : ""; f.id.value = s ? s.id : "";
+  f.grupo.value = s ? s.grupo : "admin"; f.nota.value = s ? s.nota : "";
+  $("#studentErr").hidden = true;
+  $("#dlgStudent").showModal();
+}
+function guardarAlumno(ev) {
+  ev.preventDefault();
+  const f = ev.target, nombre = f.nombre.value.trim(), id = f.id.value.trim();
+  const dup = state.students.find((s) => s.id === id && s.id !== ui.editing);
+  if (!nombre || !id) return;
+  if (dup) { const e = $("#studentErr"); e.textContent = `Esa matrícula ya pertenece a ${dup.nombre}.`; e.hidden = false; return; }
+  if (ui.editing) {
+    const s = buscar(ui.editing); const viejo = s.nombre;
+    Object.assign(s, { nombre, id, grupo: f.grupo.value, nota: f.nota.value.trim() });
+    state.log.forEach((l) => { if (l.id === ui.editing) l.id = id; });
+    bitacora(s, `Datos editados (antes: ${viejo})`);
+  } else {
+    const s = { id, nombre, grupo: f.grupo.value, carta: false, reglamento: false, nota: f.nota.value.trim(), entrada: null, salida: null };
+    state.students.push(s); bitacora(s, "Alumno agregado");
+  }
+  guardar(); render(); $("#dlgStudent").close(); toast("Alumno guardado"); ghProgramar();
+}
+
+/* ---------- Reporte y exportación ---------- */
+function lista(arr) { return arr.length ? `<ul>${arr.map((s) => `<li>${esc(s.nombre)} <span class="none">(${esc(s.id)})</span></li>`).join("")}</ul>` : '<p class="none">Ninguno</p>'; }
+function renderReporte() {
+  const l = state.students.slice().sort(orden);
+  const bloque = (k, g) => {
+    const m = l.filter((s) => s.grupo === k);
+    return `<h3 class="${g.cls}">${g.completo} · ${m.length} alumnos</h3>
+      <p>Entradas ${m.filter((s) => s.entrada).length} · Salidas ${m.filter((s) => s.salida).length}</p>
+      <h4>Sin entrada registrada</h4>${lista(m.filter((s) => !s.entrada))}
+      <h4>Dentro (sin salida)</h4>${lista(m.filter((s) => s.entrada && !s.salida))}
+      <h4>Sin carta responsiva</h4>${lista(m.filter((s) => !s.carta))}
+      <h4>Sin reglamento firmado</h4>${lista(m.filter((s) => !s.reglamento))}`;
+  };
+  const log = state.log.slice().reverse().map((x) => `<tr><td>${fechaHora(x.t)}</td><td>${esc(x.nombre)}</td><td>${esc(x.accion)}</td></tr>`).join("");
+  $("#report").innerHTML = `<div class="rep">
+    <h2>Reporte · Viaje a Solferino</h2>
+    <p class="when">Universidad Anáhuac Cancún · Introducción a la Empresa · generado el ${fechaHora(new Date().toISOString())}</p>
+    <div class="rep-grid">
+      <div><b>${l.filter((s) => s.entrada).length}/${l.length}</b>Entradas</div>
+      <div><b>${l.filter((s) => s.salida).length}/${l.length}</b>Salidas</div>
+      <div><b>${l.filter((s) => s.carta && s.reglamento).length}/${l.length}</b>Documentos completos</div>
+    </div>
+    ${Object.entries(GRUPOS).map(([k, g]) => bloque(k, g)).join("")}
+    <details open><summary><b>Bitácora de movimientos (${state.log.length})</b></summary>
+      <table><thead><tr><th>Hora</th><th>Alumno</th><th>Movimiento</th></tr></thead><tbody>${log || '<tr><td colspan="3">Sin movimientos</td></tr>'}</tbody></table></details>
+  </div>`;
+}
+
+/* ---------- PDF ---------- */
+function resumenDescargas() {
+  const l = state.students, e = l.filter((s) => s.entrada).length, o = l.filter((s) => s.salida).length;
+  const el = $("#dlResumen");
+  if (el) el.innerHTML = `Entradas ${e}/${l.length} · Salidas ${o}/${l.length}` + (e === l.length && o === l.length ? ' · <span class="ok">Checklist completo</span>' : "");
+}
+function pdf() {
+  const lib = window.jspdf;
+  if (!lib || !lib.jsPDF || !(lib.jsPDF.API && lib.jsPDF.API.autoTable)) {
+    toast("No cargó el generador de PDF (¿sin internet?). Usa “Reporte” → Imprimir / guardar PDF.");
+    return;
+  }
+  const doc = new lib.jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
+  const W = doc.internal.pageSize.getWidth(), M = 34;
+  const l = state.students.slice().sort(orden);
+  const e = l.filter((s) => s.entrada).length, o = l.filter((s) => s.salida).length, d = l.filter((s) => s.carta && s.reglamento).length;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(43, 31, 27);
+  doc.text("Solferino · 8 de octubre de 2026", M, 44);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(111, 94, 86);
+  doc.text("Universidad Anáhuac Cancún · Introducción a la Empresa · Lista de entrada y salida", M, 60);
+  doc.text(`Generado el ${fechaHora(new Date().toISOString())} · Entradas ${e}/${l.length} · Salidas ${o}/${l.length} · Documentos completos ${d}/${l.length}`, M, 74);
+  let y = 88;
+  const colores = { admin: [185, 58, 34], lider: [15, 118, 110] };
+  Object.entries(GRUPOS).forEach(([k, g]) => {
+    const m = l.filter((s) => s.grupo === k);
+    if (!m.length) return;
+    doc.autoTable({
+      startY: y, margin: { left: M, right: M, bottom: 40 },
+      head: [[{ content: `${g.completo} · ${m.length} alumnos`, colSpan: 8, styles: { fillColor: colores[k], halign: "left", fontSize: 11 } }],
+             ["#", "Alumno", "Matrícula", "Carta resp.", "Reglamento", "Entrada", "Salida", "Notas"]],
+      body: m.map((s, i) => [i + 1, s.nombre, s.id, s.carta ? "Sí" : "Falta", s.reglamento ? "Sí" : "Falta", s.entrada ? hora(s.entrada) : "", s.salida ? hora(s.salida) : "", s.nota || ""]),
+      theme: "grid", showHead: "everyPage",
+      styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, textColor: [43, 31, 27], lineColor: [201, 184, 174], lineWidth: 0.4, valign: "middle" },
+      headStyles: { fillColor: [43, 31, 27], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [255, 248, 243] },
+      columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 178 }, 2: { cellWidth: 56 }, 3: { cellWidth: 52 }, 4: { cellWidth: 58 }, 5: { cellWidth: 48 }, 6: { cellWidth: 48 } },
+      didParseCell: (x) => {
+        if (x.section === "body" && (x.column.index === 3 || x.column.index === 4) && x.cell.raw === "Falta") { x.cell.styles.textColor = [185, 28, 28]; x.cell.styles.fontStyle = "bold"; }
+        if (x.section === "body" && x.column.index === 7) { x.cell.styles.textColor = [154, 74, 6]; x.cell.styles.fontSize = 7.5; }
+        if (x.section === "body" && (x.column.index === 5 || x.column.index === 6) && x.cell.raw) { x.cell.styles.fontStyle = "bold"; }
+      }
+    });
+    y = doc.lastAutoTable.finalY + 18;
+  });
+  if (state.log.length) {
+    doc.autoTable({
+      startY: y > 500 ? undefined : y, margin: { left: M, right: M, bottom: 40 },
+      head: [[{ content: `Bitácora de movimientos (${state.log.length})`, colSpan: 3, styles: { fillColor: [43, 31, 27], halign: "left", fontSize: 11 } }],
+             ["Hora", "Alumno", "Movimiento"]],
+      body: state.log.map((x) => [fechaHora(x.t), x.nombre, x.accion]),
+      theme: "grid", showHead: "everyPage",
+      styles: { font: "helvetica", fontSize: 8, cellPadding: 3, lineColor: [201, 184, 174], lineWidth: 0.4 },
+      headStyles: { fillColor: [111, 94, 86], textColor: 255 },
+      columnStyles: { 0: { cellWidth: 110 }, 1: { cellWidth: 260 } }
+    });
+  }
+  const n = doc.getNumberOfPages();
+  for (let p = 1; p <= n; p++) {
+    doc.setPage(p); doc.setFontSize(8); doc.setTextColor(111, 94, 86);
+    const H = doc.internal.pageSize.getHeight();
+    doc.text("Universidad Anáhuac Cancún · Solferino · 8 de octubre de 2026", M, H - 18);
+    doc.text(`Página ${p} de ${n}`, W - M, H - 18, { align: "right" });
+  }
+  doc.save("checklist-solferino-2026-10-08.pdf");
+  toast("PDF descargado · tu información sigue guardada");
+}
+
+function descargar(nombre, contenido, tipo) {
+  const url = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: nombre });
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const celda = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+function csv() {
+  const filas = [["Licenciatura", "Matrícula", "Alumno", "Carta responsiva", "Reglamento firmado", "Entrada", "Salida", "Nota"]];
+  state.students.slice().sort((x, y) => x.grupo.localeCompare(y.grupo) || orden(x, y)).forEach((s) => filas.push([GRUPOS[s.grupo].nombre, s.id, s.nombre, s.carta ? "Sí" : "No", s.reglamento ? "Sí" : "No", s.entrada ? fechaHora(s.entrada) : "", s.salida ? fechaHora(s.salida) : "", s.nota]));
+  descargar("reporte-solferino-2026-10-08.csv", "\ufeff" + filas.map((f) => f.map(celda).join(",")).join("\n"), "text/csv;charset=utf-8");
+}
+function exportar() {
+  descargar(`respaldo-solferino-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`, JSON.stringify(state, null, 2), "application/json");
+  toast("Respaldo descargado");
+}
+const primero = (a, b) => (a && b ? (a < b ? a : b) : a || b || null);
+function mergeDatos(datos) {
+  let nuevos = 0;
+  datos.students.forEach((b) => {
+    const a = buscar(b.id);
+    if (!a) { state.students.push(b); nuevos++; return; }
+    a.carta = a.carta || b.carta; a.reglamento = a.reglamento || b.reglamento;
+    a.entrada = primero(a.entrada, b.entrada); a.salida = primero(a.salida, b.salida);
+    if (!a.nota && b.nota) a.nota = b.nota;
+  });
+  const vistos = new Set(state.log.map((x) => x.t + x.id + x.accion));
+  (datos.log || []).forEach((x) => { if (!vistos.has(x.t + x.id + x.accion)) state.log.push(x); });
+  state.log.sort((x, y) => (x.t < y.t ? -1 : 1));
+  guardar();
+  return nuevos;
+}
+function importar(texto) {
+  let datos;
+  try { datos = JSON.parse(texto); if (!Array.isArray(datos.students)) throw 0; } catch (e) { toast("El archivo no es un respaldo válido"); return; }
+  const nuevos = mergeDatos(datos);
+  render(); $("#dlgBackup").close();
+  toast(`Respaldo combinado${nuevos ? ` · ${nuevos} alumno(s) nuevo(s)` : ""}`);
+}
+
+/* ---------- GitHub ---------- */
+const GH_KEY = "solferino-github-v1", GH_PATH = "registro/registro.json";
+let gh = (() => { try { return JSON.parse(localStorage.getItem(GH_KEY)) || {}; } catch (e) { return {}; } })();
+let ghListo = false, ghTimer = null, ghBusy = false;
+const ghGuardarCfg = () => { try { localStorage.setItem(GH_KEY, JSON.stringify(gh)); } catch (e) {} };
+function ghEstado(msg, err) { const el = $("#ghEstado"); if (el) { el.textContent = msg; el.style.color = err ? "#B91C1C" : ""; } }
+function ghLeerForm() {
+  gh.repo = $("#ghRepo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/+$/, "");
+  gh.token = $("#ghToken").value.trim(); gh.auto = $("#ghAuto").checked; ghGuardarCfg();
+}
+function ghPintarForm() {
+  if (!gh.repo && /\.github\.io$/.test(location.hostname)) {
+    const repo = location.pathname.split("/")[1];
+    if (repo) gh.repo = `${location.hostname.split(".")[0]}/${repo}`;
+  }
+  $("#ghRepo").value = gh.repo || ""; $("#ghToken").value = gh.token || ""; $("#ghAuto").checked = !!gh.auto;
+}
+const ghListoCfg = () => !!(gh.repo && gh.token);
+function ghApi(method, body) {
+  return fetch(`https://api.github.com/repos/${gh.repo}/contents/${GH_PATH}` + (method === "GET" ? `?t=${Date.now()}` : ""), {
+    method, cache: "no-store", body: body ? JSON.stringify(body) : undefined,
+    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${gh.token}`, "X-GitHub-Api-Version": "2022-11-28", ...(body ? { "Content-Type": "application/json" } : {}) }
+  });
+}
+const aB64 = (t) => btoa(unescape(encodeURIComponent(t)));
+const deB64 = (b) => decodeURIComponent(escape(atob(b.replace(/\s/g, ""))));
+function ghError(status) {
+  if (status === 401) return "El token no es válido o venció.";
+  if (status === 403) return "El token no tiene permiso (necesita Contents: lectura y escritura).";
+  if (status === 404) return "No se encontró el repositorio, o el token no tiene acceso a él.";
+  return `GitHub respondió con el error ${status}.`;
+}
+// Descarga el registro de GitHub y lo combina con el local. Devuelve el sha actual (o null si aún no existe).
+async function ghTraer() {
+  const r = await ghApi("GET");
+  if (r.status === 404) return { sha: null, existe: false };
+  if (!r.ok) throw new Error(ghError(r.status));
+  const j = await r.json();
+  mergeDatos(JSON.parse(deB64(j.content)));
+  return { sha: j.sha, existe: true };
+}
+async function ghSubir() {
+  ghLeerForm();
+  if (!ghListoCfg()) { ghEstado("Escribe el repositorio y el token.", true); return false; }
+  if (ghBusy) return false;
+  ghBusy = true; ghEstado("Guardando en GitHub…");
+  try {
+    for (let i = 0; i < 3; i++) {
+      const { sha } = await ghTraer();
+      render();
+      const body = { message: `Registro Solferino ${fechaHora(new Date().toISOString())}`, content: aB64(JSON.stringify(state, null, 2)) };
+      if (sha) body.sha = sha;
+      const r = await ghApi("PUT", body);
+      if (r.ok) { ghEstado(`Guardado en GitHub a las ${hora(new Date().toISOString())}`); return true; }
+      if (r.status === 409 || r.status === 422) continue; // otro dispositivo guardó antes: se vuelve a combinar
+      throw new Error(ghError(r.status));
+    }
+    throw new Error("Hubo un conflicto repetido. Intenta de nuevo.");
+  } catch (e) {
+    ghEstado(e instanceof TypeError ? "Sin internet. Todo sigue guardado en este dispositivo; se podrá subir después." : `No se pudo guardar: ${e.message}`, true);
+    return false;
+  } finally { ghBusy = false; }
+}
+async function ghTraerManual() {
+  ghLeerForm();
+  if (!ghListoCfg()) { ghEstado("Escribe el repositorio y el token.", true); return; }
+  ghEstado("Trayendo el registro de GitHub…");
+  try {
+    const { existe } = await ghTraer(); render();
+    ghEstado(existe ? "Registro de GitHub combinado con el de este dispositivo." : "Aún no hay registro en GitHub. Usa “Guardar en GitHub”.");
+  } catch (e) { ghEstado(e instanceof TypeError ? "Sin internet." : `No se pudo traer: ${e.message}`, true); }
+}
+function ghProgramar() {
+  if (!ghListo || !gh.auto || !ghListoCfg()) return;
+  clearTimeout(ghTimer); ghTimer = setTimeout(ghSubir, 4000);
+}
+function ghOlvidar() { gh.token = ""; gh.auto = false; ghGuardarCfg(); ghPintarForm(); ghEstado("Token quitado de este dispositivo."); }
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click", (ev) => {
+  const el = ev.target.closest("[data-action]"); if (!el) return;
+  const d = el.dataset;
+  switch (d.action) {
+    case "mark": marcar(d.id, d.tipo); break;
+    case "doc": alternarDoc(d.id, d.k); break;
+    case "edit": abrirAlumno(d.id); break;
+    case "add": abrirAlumno(null); break;
+    case "filter": ui.f = d.f; renderChips(); renderList(); break;
+    case "open-report": renderReporte(); $("#dlgReport").showModal(); break;
+    case "open-backup": $("#dlgBackup").showModal(); break;
+    case "close-dlg": el.closest("dialog").close(); break;
+    case "csv": csv(); break;
+    case "pdf": pdf(); break;
+    case "gh-subir": ghSubir(); break;
+    case "gh-traer": ghTraerManual(); break;
+    case "gh-olvidar": ghOlvidar(); break;
+    case "export": exportar(); break;
+    case "print": window.print(); break;
+  }
+});
+$("#q").addEventListener("input", (e) => { ui.q = e.target.value; renderList(); });
+$("#formStudent").addEventListener("submit", guardarAlumno);
+$("#importFile").addEventListener("change", (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(importar); e.target.value = "";
+});
+document.querySelectorAll("dialog").forEach((d) => d.addEventListener("click", (e) => { if (e.target === d) d.close(); }));
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+guardar(); aviso(); render();
+ghPintarForm();
+["#ghRepo", "#ghToken", "#ghAuto"].forEach((s) => $(s).addEventListener("change", ghLeerForm));
+window.addEventListener("online", () => ghProgramar());
+ghListo = true;
+if (gh.auto && ghListoCfg()) ghTraer().then(render).catch(() => {});
+})();
+
+</script>
+</body>
+</html>
